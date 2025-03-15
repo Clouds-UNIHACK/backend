@@ -5,6 +5,7 @@ from http.client import HTTPException
 from fastapi import APIRouter, Depends, Request, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.database.session import get_session
+from backend.dtos.requests.folder.create_folder_request_dto import CreateFolderRequestDto
 from backend.dtos.requests.folder.folder_update_request_dto import FolderUpdateRequestDto
 from backend.mappers.folders_mapper import map_folder_to_folder_response_dto
 from backend.mappers.images_mapper import map_image_to_image_response_dto
@@ -16,6 +17,20 @@ from starlette.responses import JSONResponse
 
 
 router = APIRouter(prefix="/api/v1", tags=["Folders"])
+
+@router.post("/create-folder")
+async def create_folder(
+        data_request: CreateFolderRequestDto,
+        http_request: Request,
+        db: AsyncSession = Depends(get_session)
+):
+    user_id = http_request.state.user_id
+
+    try:
+        new_folder = await FolderRepository.create_folder(db, data_request.name, user_id)
+        return JSONResponse(content={"id": new_folder.id, "name": new_folder.name}, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Cannot create folder to the database {e}")
 
 @router.get("/folders")
 async def get_folders(
@@ -100,10 +115,10 @@ async def delete_folder(
     try:
         user_id = http_request.state.user_id
 
-        # Get folder with image_id
+        # Get folder with folder_id
         folder = await FolderRepository.get_folder_by_id(db, folder_id)
 
-        # If the deleted image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
+        # If the deleted folder doesn't have the same user_id as the current request user_id, they are doing something naughty :3
         if user_id != folder.user_id: raise Exception("Unauthorized")
 
         # Get all images in this folder (We want to remove all of them when the folder is removed)

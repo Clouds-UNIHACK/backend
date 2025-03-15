@@ -7,10 +7,11 @@ import torch
 import torch.nn.functional as F
 
 class Product:
-    def __init__(self, title: str, image_url: str, shop_name: str):
+    def __init__(self, title: str, image_url: str, shop_name: str, price: float):
         self.title = title
         self.image : Image.Image = Image.open(BytesIO(requests.get(image_url).content))
         self.shop = shop_name
+        self.price = price
         self.image_url = image_url
         self.link = f"https://www.google.com/search?q={title.replace(' ', '+')}+Shop%3A+{shop_name}"
         self.similarity_score = 0
@@ -21,8 +22,8 @@ class Product:
             "title": self.title,
             "image_url": self.image_url,
             "shop": self.shop,
-            "link": self.link,
-            "similarity_score": self.similarity_score
+            "price": self.price,
+            "link": self.link
         }
 
 def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
@@ -41,13 +42,13 @@ def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
     response.raise_for_status()  # raises an error if the request failed
     results = response.json()
     shopping_results = results.get("shopping_results", [])
-    print(f"Shopping Results: {shopping_results}")
     products = []
     for product in shopping_results:
         title = product.get("title")
         image_url = product.get("thumbnail")
         shop_name = product.get("source")
-        product_obj = Product(title, image_url, shop_name)
+        price = product.get("price")
+        product_obj = Product(title, image_url, shop_name, price)
         products.append(product_obj)
     return products
 

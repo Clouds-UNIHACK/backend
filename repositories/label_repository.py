@@ -14,6 +14,9 @@ class LabelRepository:
         try:
             # Create the folder
             label = Label(name=name, color=color, user_id=user_id)
+            if not color:
+                label.color = "FF0000"
+
             db.add(label)
             await db.commit()
             await db.refresh(label)
@@ -77,7 +80,7 @@ class LabelRepository:
             raise e
 
     @staticmethod
-    async def delete_folder(db: AsyncSession, label_id: str):
+    async def delete_label(db: AsyncSession, label_id: str):
         try:
             # Retrieve the folder to delete
             label = await LabelRepository.get_label_by_id(db, label_id)
