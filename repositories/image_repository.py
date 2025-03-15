@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -37,6 +39,24 @@ class ImageRepository:
         return image
 
     @staticmethod
+    async def update_image_folder_id(db: AsyncSession, image_id: str, folder_id: str) -> Image:
+        try:
+            # Retrieve the image to update
+            image = await ImageRepository.get_image_by_id(db, image_id)
+
+            if image:
+                # Update the image's folder_id
+                image.folder_id = uuid.UUID(folder_id)
+
+                await db.commit()
+                await db.refresh(image)
+                return image
+            else:
+                raise ValueError("Folder not found")
+        except Exception as e:
+            await db.rollback()
+            raise e
+    @staticmethod
     async def delete_image(db: AsyncSession, image_id: str):
         try:
             # Retrieve the image to delete
@@ -47,7 +67,7 @@ class ImageRepository:
                 await db.delete(folder)
                 await db.commit()
             else:
-                raise ValueError("Folder not found")
+                raise Exception("Folder not found")
         except Exception as e:
             await db.rollback()
             raise e

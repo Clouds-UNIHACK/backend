@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request, File, UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.database.session import get_session
 from backend.dtos.requests.image.save_picture_request_dto import SavePictureRequestDto
+from backend.dtos.requests.image.update_image_request_dto import UpdateImageRequestDto
 from backend.mappers.images_mapper import map_image_to_image_response_dto
 from backend.repositories.image_repository import ImageRepository
 from backend.services.cloudinary_service import upload_cloudinary, delete_image_from_cloudinary
@@ -103,7 +104,7 @@ async def get_image_by_id(
     try:
         image = await ImageRepository.get_image_by_id(db, image_id)
 
-        # If the deleted image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
+        # If the image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
         if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
 
         return JSONResponse(content=map_image_to_image_response_dto(image), status_code=200)
@@ -124,6 +125,25 @@ async def get_images_by_folder_id(
         return JSONResponse(content=images_dto, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
+
+@router.put("/update_image")
+async def update_image(
+        data_request: UpdateImageRequestDto,
+        http_request: Request,
+        db: AsyncSession = Depends(get_session)
+):
+    try:
+        image = await ImageRepository.get_image_by_id(db, data_request.image_id)
+
+        # If the image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
+        if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
+
+        # Update (move) image to its new folder
+        new_image = await ImageRepository.update_image_folder_id(db, data_request.image_id, data_request.folder_id)
+        return JSONResponse(content=map_image_to_image_response_dto(new_image), status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
+
 
 @router.delete("/delete-image/{image_id}")
 async def delete_image(
