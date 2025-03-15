@@ -37,12 +37,6 @@ class ImageRepository:
         return image
 
     @staticmethod
-    async def get_image_by_public_id(db: AsyncSession, public_id: str) -> Image:
-        result = await db.execute(select(Image).where(Image.public_id == public_id))
-        folder = result.scalars().first()
-        return folder
-
-    @staticmethod
     async def delete_image(db: AsyncSession, image_id: str):
         try:
             # Retrieve the image to delete

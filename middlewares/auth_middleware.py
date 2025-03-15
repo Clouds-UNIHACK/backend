@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 
 from backend.utils.jwt_token import decode_payload_from_jwt
 
-EXCLUDED_PATHS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/generate-image"}  # Set for fast lookup
+EXCLUDED_PATHS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/generate-image", "/docs", "/openapi.json"}  # Set for fast lookup
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
