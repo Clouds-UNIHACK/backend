@@ -29,10 +29,11 @@ def generate_caption(image: Image.Image, pipe: pipeline) -> str:
 
 
 class Product:
-    def __init__(self, title: str, image_url: str, shop_name: str):
+    def __init__(self, title: str, image_url: str, shop_name: str, price: float):
         self.title = title
         self.image : Image.Image = Image.open(BytesIO(requests.get(image_url).content))
         self.shop = shop_name
+        self.price = price
         self.image_url = image_url
         self.link = f"https://www.google.com/search?q={title.replace(' ', '+')}+Shop%3A+{shop_name}"
         self.similarity_score = 0
@@ -43,6 +44,7 @@ class Product:
             "title": self.title,
             "image_url": self.image_url,
             "shop": self.shop,
+            "price": self.price,
             "link": self.link
         }
 
@@ -67,7 +69,8 @@ def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
         title = product.get("title")
         image_url = product.get("thumbnail")
         shop_name = product.get("source")
-        product_obj = Product(title, image_url, shop_name)
+        price = product.get("price")
+        product_obj = Product(title, image_url, shop_name, price)
         products.append(product_obj)
     return products
     
