@@ -60,7 +60,7 @@ class ImageRepository:
     async def delete_image(db: AsyncSession, image_id: str):
         try:
             # Retrieve the image to delete
-            folder = ImageRepository.get_image_by_id(db, image_id)
+            folder = await ImageRepository.get_image_by_id(db, image_id)
 
             if folder:
                 # Delete the image

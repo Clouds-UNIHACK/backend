@@ -42,8 +42,8 @@ async def get_folders(
         user_id = http_request.state.user_id
 
         folders = await FolderRepository.get_folders_by_user_id(db, user_id)
-        folders_dto = reduce(lambda lists, folder: lists.append(map_folder_to_folder_response_dto(folder)), folders, [])
-        return JSONResponse(content=folders_dto, status_code=200)
+        folders_dto = [map_folder_to_folder_response_dto(folder) for folder in folders]
+        return folders_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
@@ -59,7 +59,7 @@ async def get_folder_by_id(
         # If the folder doesn't have the same user_id as the current request user_id, they are doing something naughty :3
         if http_request.state.user_id != folder.user_id: raise Exception("Unauthorized")
 
-        return JSONResponse(content=map_folder_to_folder_response_dto(folder), status_code=200)
+        return map_folder_to_folder_response_dto(folder)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
@@ -74,8 +74,8 @@ async def get_folders_by_label_id(
         user_id = http_request.state.user_id
 
         folders = await FolderRepository.get_folders_by_label_id(db, user_id, label_id)
-        folders_dto = reduce(lambda lists, folder: lists.append(map_image_to_image_response_dto(folder)), folders, [])
-        return JSONResponse(content=folders_dto, status_code=200)
+        folders_dto = [map_folder_to_folder_response_dto(folder) for folder in folders]
+        return folders_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
@@ -102,7 +102,7 @@ async def update_folder(
             # Add/Remove labels for the folder
             new_folder = await FolderRepository.update_folder_labels(db, update_folder.id, labels)
 
-        return JSONResponse(content=map_folder_to_folder_response_dto(new_folder), status_code=200)
+        return map_folder_to_folder_response_dto(new_folder)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 

@@ -92,7 +92,7 @@ class FolderRepository:
     async def delete_folder(db: AsyncSession, folder_id: str):
         try:
             # Retrieve the folder to delete
-            folder = FolderRepository.get_folder_by_id(db, folder_id)
+            folder = await FolderRepository.get_folder_by_id(db, folder_id)
 
             if folder:
                 # Delete the folder

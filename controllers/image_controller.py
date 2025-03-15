@@ -1,5 +1,4 @@
-﻿from functools import reduce
-from http.client import HTTPException
+﻿from http.client import HTTPException
 from io import BytesIO
 
 import requests
@@ -9,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.database.session import get_session
 from backend.dtos.requests.image.save_picture_request_dto import SavePictureRequestDto
 from backend.dtos.requests.image.update_image_request_dto import UpdateImageRequestDto
+from backend.dtos.responses.image_response_dto import ImageResponseDto
 from backend.mappers.images_mapper import map_image_to_image_response_dto
 from backend.repositories.image_repository import ImageRepository
 from backend.services.cloudinary_service import upload_cloudinary, delete_image_from_cloudinary
@@ -88,14 +88,15 @@ async def get_images(
     try:
         # Get all images from the current user
         user_id = http_request.state.user_id
+        print(user_id)
 
         images = await ImageRepository.get_images_by_user_id(db, user_id)
-        images_dto = reduce(lambda lists, image: lists.append(map_image_to_image_response_dto(image)), images, [])
-        return JSONResponse(content=images_dto, status_code=200)
+        images_dto = [map_image_to_image_response_dto(image) for image in images]
+        return images_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
-@router.get("/saved-images/{image_id}")
+@router.get("/saved-images/{image_id}", response_model=ImageResponseDto)
 async def get_image_by_id(
         image_id: str,
         http_request: Request,
@@ -105,9 +106,9 @@ async def get_image_by_id(
         image = await ImageRepository.get_image_by_id(db, image_id)
 
         # If the image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(image.user_id): raise Exception("Unauthorized")
 
-        return JSONResponse(content=map_image_to_image_response_dto(image), status_code=200)
+        return map_image_to_image_response_dto(image)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
@@ -121,12 +122,12 @@ async def get_images_by_folder_id(
         # Get image from current user with specific ID
         user_id = http_request.state.user_id
         images = await ImageRepository.get_images_by_folder_id(db, user_id, folder_id)
-        images_dto = reduce(lambda lists, image: lists.append(map_image_to_image_response_dto(image)), images, [])
+        images_dto = [map_image_to_image_response_dto(image) for image in images]
         return JSONResponse(content=images_dto, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
-@router.put("/update-image")
+@router.put("/update-image", response_model=ImageResponseDto)
 async def update_image(
         data_request: UpdateImageRequestDto,
         http_request: Request,
@@ -136,7 +137,7 @@ async def update_image(
         image = await ImageRepository.get_image_by_id(db, data_request.id)
 
         # If the image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(image.user_id): raise Exception("Unauthorized")
 
         # Update (move) image to its new folder
         new_image = await ImageRepository.update_image_folder_id(db, data_request.id, data_request.folder_id)
@@ -156,10 +157,10 @@ async def delete_image(
         image = await ImageRepository.get_image_by_id(db, image_id)
 
         # If the deleted image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(image.user_id): raise Exception("Unauthorized")
 
         cloudinary_result = await delete_image_from_cloudinary(image.public_id)
-        if cloudinary_result["result"] != "ok": raise Exception("Failed to delete image in cloudinary")
+        if cloudinary_result["result"] != "ok": raise Exception(f"Failed to delete image in cloudinary: {cloudinary_result}")
 
         await ImageRepository.delete_image(db, str(image.id))
         return JSONResponse(content={"result": "ok"}, status_code=200)
