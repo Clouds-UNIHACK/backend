@@ -6,8 +6,9 @@ from backend.models.image import Image
 from backend.models.label import Label
 from backend.models.folder_label import FolderLabel
 
-def init_db():
-    SQLModel.metadata.create_all(bind=engine)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
 
 if __name__ == "__main__":
     init_db()

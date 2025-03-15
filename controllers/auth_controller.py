@@ -2,17 +2,16 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from models import User  # Assuming you have a SQLAlchemy User model
-from database.session import (
+from backend.database.session import (
     get_session,
 )  # Assuming you have a dependency to get DB session
-from typing import Any
-from models.user import User
-from utils.jwt import create_access_token
-from utils.misc import is_valid_email
+from backend.dtos.requests.login_request_dto import LoginRequestDto
+from backend.dtos.requests.register_request_dto import RegisterRequestDto
+from backend.models.user import User
+from backend.utils.jwt_token import create_access_token
+from backend.utils.misc import is_valid_email
 
-router = APIRouter()
-from utils.misc import is_valid_email
+router = APIRouter(prefix="/api/v1", tags=["Authentication"])
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -21,20 +20,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-
-class RegisterRequest(User):
-    name: str
-    email: str
-    password: str
-
-
-class LoginRequest(User):
-    username: str
-    password: str
-
-
 @router.post("/register")
-async def auth_register(request: RegisterRequest, db: Session = Depends(get_session)):
+async def auth_register(request: RegisterRequestDto, db: Session = Depends(get_session)):
     username = request.username.strip()
     email = request.email.strip()
     password = request.password
@@ -95,7 +82,7 @@ async def auth_register(request: RegisterRequest, db: Session = Depends(get_sess
 
 
 @router.post("/login")
-async def login(request: LoginRequest, db: Session = Depends(get_session)):
+async def login(request: LoginRequestDto, db: Session = Depends(get_session)):
     email = request.email.strip()
     password = request.password
 

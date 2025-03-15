@@ -1,5 +1,4 @@
 ﻿import asyncio
-import base64
 
 import requests
 from fastapi import APIRouter, File, UploadFile, HTTPException
@@ -7,25 +6,20 @@ from starlette.responses import JSONResponse
 
 from backend.utils.const import kling_ai_api_domain
 from backend.utils.kling_ai_token import encode_kling_ai_jwt_token
-
+from backend.utils.misc import encode_image
 
 router = APIRouter(prefix="/api/v1", tags=["Image"])
 
 @router.post("/generate-image")
 async def generate_image(human_image: UploadFile = File(...), cloth_image: UploadFile = File(...)):
-
-    # Convert image to Base64 string
-    def encode_image(image: UploadFile):
-        image_bytes = image.file.read()
-        encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-        return encoded_image
-
     encoded_human_image = encode_image(human_image)
     encoded_cloth_image = encode_image(cloth_image)
 
+    token = f"Bearer {encode_kling_ai_jwt_token()}"
+
     header = {
         "Content-Type": "application/json",
-        "Authorization": encode_kling_ai_jwt_token()
+        "Authorization": token
     }
 
     data = {
@@ -68,7 +62,7 @@ async def generate_image(human_image: UploadFile = File(...), cloth_image: Uploa
                     task_error_code = task_response_data.get("code")
                     task_message = task_response_data.get("message")
                     raise HTTPException(status_code=400, detail=f"Fail to fetch task id from Kling AI. Returns with: "
-                                                                f"error_code: {task_error_code}, message: {task_message}")
+                                                                f"error_code: {task_error_code}, message: {task_message}, token: {token}")
         image_url = await poll_kling_ai()
 
         return JSONResponse(content={"image_url": image_url}, status_code=200)
@@ -77,7 +71,7 @@ async def generate_image(human_image: UploadFile = File(...), cloth_image: Uploa
         error_code = response_data.get("code")
         message = response_data.get("message")
         raise HTTPException(status_code=400, detail=f"Failed to start image generation. Kling AI returns with: "
-                                                    f"error_code: {error_code}, message: {message}")
+                                                    f"error_code: {error_code}, message: {message}, token: {token}")
 
 
 
