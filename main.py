@@ -4,7 +4,8 @@ from backend.config import *
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from backend.controllers import image_controller
+from backend.controllers import image_controller, kling_ai_controller, auth_controller
+from backend.middlewares.auth_middleware import AuthMiddleware
 from transformers import pipeline, CLIPProcessor, CLIPModel
 from PIL import Image
 from io import BytesIO
@@ -14,22 +15,10 @@ import torch.nn.functional as F
 serper_api_key = os.getenv("SERPER_API_KEY")  # Replace with your actual SerpApi key
 
 app = FastAPI(title="Clouds-Unihack API")
-BLIP_pipe = pipeline("image-to-text", model="rcfg/FashionBLIP-1", use_fast=True)
-clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Update the origins list to include your frontend's origin (e.g., http://localhost:3000)
-origins = ["http://localhost:5173"]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,          # Allow specified origins
-    allow_credentials=True,
-    allow_methods=["*"],            # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
-    allow_headers=["*"],            # Allow all headers
-)
-
-# app.include_router(auth_controller.router)
+app.include_router(auth_controller.router)
+app.include_router(kling_ai_controller.router)
 app.include_router(image_controller.router)
 # app.include_router(folder_controller.router)
 # app.include_router(label_controller.router)

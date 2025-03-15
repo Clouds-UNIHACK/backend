@@ -24,6 +24,7 @@ archive.zip
 .*.sw?
 .cache
 .env
+.env.deploy
 docker-compose.yml
 ai_rec_shop_test.py
 ai_rec_shop_test_image.png
