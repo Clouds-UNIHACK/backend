@@ -1,7 +1,14 @@
 ﻿from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from backend.controllers import image_controller, auth_controller, folder_controller, label_controller
 
 app = FastAPI(title="Clouds-Unihack API")
+
+
+# app.include_router(auth_controller.router)
+app.include_router(image_controller.router)
+# app.include_router(folder_controller.router)
+# app.include_router(label_controller.router)
 
 @app.get("/")
 def root():
