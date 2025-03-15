@@ -9,13 +9,13 @@ from backend.models.user import User
 class Folder(SQLModel, table=True):
     __tablename__ = "folder"
 
-    folder_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(nullable=False)
-    user_id: Optional[uuid.UUID] = Field(foreign_key="user.user_id")
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
 
-    user: User = Relationship(back_populates="user")
+    user: User = Relationship(back_populates="folders")
     images: List["Image"] = Relationship(back_populates="folder")
     labels: List["Label"] = Relationship(
-        back_populates="folder",
+        back_populates="folders",
         link_model=FolderLabel
     )

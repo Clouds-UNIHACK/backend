@@ -1,55 +1,37 @@
-from fastapi import Request, HTTPException, Response
-from typing import Callable
-from functools import wraps
+from fastapi import HTTPException, Request
 import jwt
-from sqlmodel import Session, select
-from models.user import User
-from utils.jwt import decode_payload_from_jwt  # Your JWT decoding function
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
+from backend.utils.jwt_token import decode_payload_from_jwt
 
-# Middleware for checking Authorization token
-def auth_middleware(db: Session):
-    """
-    Authorization middleware to check if the Bearer token is valid and attach the associated user to the request.
-    """
+EXCLUDED_PATHS = {"/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/generate-image"}  # Set for fast lookup
 
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(request: Request, response: Response, *args, **kwargs):
-            # Unauthorized response function
-            def unauthenticated():
-                raise HTTPException(status_code=401, detail="Unauthorized")
+class AuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
 
-            # Check Authorization header
-            authorization = request.headers.get("Authorization")
-            if not authorization:
-                return unauthenticated()
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in EXCLUDED_PATHS:
+            return await call_next(request)  # Skip authentication for excluded paths
 
-            # Extract token from Bearer header
-            token = authorization.replace("Bearer ", "")
-            try:
-                payload = decode_payload_from_jwt(token)  # Decode and verify JWT
-            except jwt.ExpiredSignatureError:
-                return unauthenticated()
-            except jwt.JWTError:
-                return unauthenticated()
+        authorization = request.headers.get("Authorization")
+        if not authorization:
+            return JSONResponse(status_code=401, content="Unauthorized")
 
-            # Extract user ID from payload
-            user_id = payload.get("id")
-            if not user_id:
-                return unauthenticated()
+        token = authorization.replace("Bearer ", "")
+        try:
+            payload = decode_payload_from_jwt(token)
+        except jwt.ExpiredSignatureError:
+            return JSONResponse(status_code=401, content="Token expired")
+        except jwt.InvalidTokenError:
+            return JSONResponse(status_code=401, content="Invalid token")
 
-            # Query user from database using SQLModel
-            statement = select(User).where(User.id == user_id)
-            user = db.exec(statement).first()
-            if not user:
-                return unauthenticated()
+        user_id = payload.get("id")
+        if not user_id:
+            return JSONResponse(status_code=401, content="Invalid token")
 
-            # Attach user to the request object
-            request.state.user = user
+        request.state.user_id = user_id  # Attach user ID to request
 
-            return await func(request, response, *args, **kwargs)
+        return await call_next(request)
 
-        return wrapper
-
-    return decorator
