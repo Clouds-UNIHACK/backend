@@ -1,32 +1,10 @@
-import base64
-import os
-from fastapi import HTTPException
+﻿from fastapi import HTTPException
 import requests
 from transformers import pipeline, CLIPProcessor, CLIPModel
 from PIL import Image
 from io import BytesIO
 import torch
 import torch.nn.functional as F
-
-
-def decode_image(image_data: str) -> Image.Image:
-    """Decode a base64 string into a PIL Image."""
-    try:
-        image_bytes = BytesIO(base64.b64decode(image_data))
-        return Image.open(image_bytes)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid image data") from e
-
-
-def generate_caption(image: Image.Image, pipe: pipeline) -> str:
-    """Generate a caption for the given image using the FashionBLIP-1 model."""
-    try:
-        caption = pipe(image)
-        generated_text = caption[0]['generated_text']
-        return generated_text
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error generating caption") from e 
-
 
 class Product:
     def __init__(self, title: str, image_url: str, shop_name: str):
@@ -58,7 +36,7 @@ def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
         "tbm": "shop",  # indicates shopping results
         "api_key": serper_api_key
     }
-    
+
     response = requests.get("https://serpapi.com/search", params=params)
     response.raise_for_status()  # raises an error if the request failed
     results = response.json()
@@ -72,7 +50,7 @@ def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
         product_obj = Product(title, image_url, shop_name)
         products.append(product_obj)
     return products
-    
+
 def get_clip_embedding(image: Image.Image, clip_processor: CLIPProcessor, clip_model: CLIPModel):
     inputs = clip_processor(images=image, return_tensors="pt")
     with torch.no_grad():
@@ -84,7 +62,8 @@ def get_similarity_score(img1_embedding, img2_embedding):
     similarity_score_cos = F.cosine_similarity(img1_embedding, img2_embedding)
     return similarity_score_cos.item()
 
-def get_shop_recommendations(image: Image.Image, recommended_images: list[Product], clip_processor: CLIPProcessor, clip_model: CLIPModel) -> list[tuple[float, Image.Image]]:
+def get_shop_recommendations(image: Image.Image, recommended_images: list[Product], clip_processor: CLIPProcessor, clip_model: CLIPModel) -> \
+list[Product]:
     img1_embedding = get_clip_embedding(image, clip_processor, clip_model)
 
     for recommended_image in recommended_images:
@@ -94,3 +73,12 @@ def get_shop_recommendations(image: Image.Image, recommended_images: list[Produc
     recommended_images.sort(reverse=True, key=lambda x: x.similarity_score)
     top_6_recommendations = recommended_images if len(recommended_images) < 6 else recommended_images[:6]
     return top_6_recommendations
+
+def generate_caption(image: Image.Image, pipe: pipeline) -> str:
+    """Generate a caption for the given image using the FashionBLIP-1 model."""
+    try:
+        caption = pipe(image)
+        generated_text = caption[0]['generated_text']
+        return generated_text
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error generating caption") from e
