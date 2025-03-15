@@ -3,7 +3,9 @@ from sqlmodel import Session, select
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from models import User  # Assuming you have a SQLAlchemy User model
-from database import get_db  # Assuming you have a dependency to get DB session
+from database.session import (
+    get_session,
+)  # Assuming you have a dependency to get DB session
 from typing import Any
 from models.user import User
 from utils.jwt import create_access_token
@@ -32,7 +34,7 @@ class LoginRequest(User):
 
 
 @router.post("/register")
-async def auth_register(request: RegisterRequest, db: Session = Depends(get_db)):
+async def auth_register(request: RegisterRequest, db: Session = Depends(get_session)):
     username = request.username.strip()
     email = request.email.strip()
     password = request.password
@@ -93,7 +95,7 @@ async def auth_register(request: RegisterRequest, db: Session = Depends(get_db))
 
 
 @router.post("/login")
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: LoginRequest, db: Session = Depends(get_session)):
     email = request.email.strip()
     password = request.password
 
