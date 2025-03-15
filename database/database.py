@@ -1,4 +1,5 @@
-﻿from sqlmodel import create_engine
+﻿from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import create_engine, Session
 from dotenv import load_dotenv
 import os
 
@@ -13,4 +14,4 @@ POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 
 DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True, future=True)
