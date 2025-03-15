@@ -1,6 +1,7 @@
-﻿from fastapi import FastAPI, HTTPException, Request
+﻿from backend.config import *
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from backend.controllers import image_controller, auth_controller, folder_controller, label_controller
+from backend.controllers import image_controller
 
 app = FastAPI(title="Clouds-Unihack API")
 

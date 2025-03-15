@@ -1,4 +1,6 @@
-﻿from sqlmodel import SQLModel
+﻿import asyncio
+
+from sqlmodel import SQLModel
 from backend.database.database import engine
 from backend.models.user import User
 from backend.models.folder import Folder
@@ -11,4 +13,4 @@ async def init_db():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 if __name__ == "__main__":
-    init_db()
+    asyncio.run(init_db())

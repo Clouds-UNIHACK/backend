@@ -1,0 +1,20 @@
+﻿# Load environment variables from .env file
+import os
+
+from dotenv import load_dotenv
+
+dotenv_path = "backend/.env"
+# Load environment variables from the .env file
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    print("Could not find .env file")
+
+POSTGRES_USER = os.getenv("POSTGRES_USER", "your_user")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "your_password")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "your_database")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+
+KLING_AI_ACCESS_KEY = os.getenv("KLING_AK")
+KLING_AI_SECRET_KEY = os.getenv("KLING_SK")

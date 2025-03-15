@@ -56,6 +56,8 @@ async def generate_image(human_image: UploadFile = File(...), cloth_image: Uploa
                             error_msg = task_data.get("data", {}).get("task_status_msg", "Unknown error")
                             raise HTTPException(status_code=400, detail=f"Image generation failed: {error_msg}")
                         case _:
+                            # Polling every 5 seconds
+
                             await asyncio.sleep(5)
                 else:
                     task_response_data = response.json()
