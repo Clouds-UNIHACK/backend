@@ -36,10 +36,10 @@ cd ..
 
 4. Initialize database:
 ```bash
-python -m python -m backend.utils.init_db
+python -m backend.utils.init_db
 ```
 
-4. Open FastAPI server
+5. Open FastAPI server
 ```bash
 uvicorn backend.main:app --reload
 ```
