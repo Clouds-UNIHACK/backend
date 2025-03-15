@@ -43,8 +43,7 @@ class Product:
             "title": self.title,
             "image_url": self.image_url,
             "shop": self.shop,
-            "link": self.link,
-            "similarity_score": self.similarity_score
+            "link": self.link
         }
 
 def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
@@ -63,7 +62,6 @@ def search_google_shopping(query: str, serper_api_key: str) -> list[Product]:
     response.raise_for_status()  # raises an error if the request failed
     results = response.json()
     shopping_results = results.get("shopping_results", [])
-    print(f"Shopping Results: {shopping_results}")
     products = []
     for product in shopping_results:
         title = product.get("title")

@@ -16,6 +16,17 @@ serper_api_key = os.getenv("SERPER_API_KEY")  # Replace with your actual SerpApi
 
 app = FastAPI(title="Clouds-Unihack API")
 
+BLIP_pipe = pipeline("image-to-text", model="rcfg/FashionBLIP-1", use_fast=True)
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Update with your frontend's URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_controller.router)
 app.include_router(kling_ai_controller.router)
@@ -37,7 +48,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.post("/api/ai-recommend-shops")
 async def ai_recommend_shops(request: Request):
-    print("ai_recommend_shops")
     try:
         # Read the image from the request
         request_data = await request.json()
@@ -50,7 +60,6 @@ async def ai_recommend_shops(request: Request):
 
         # Generate the caption for the image
         generated_caption = generate_caption(image, BLIP_pipe)
-        print(f"Generated Caption: {generated_caption}")
 
         # Get the recommended images from Google Shopping API
         recommended_images: list[Product] = search_google_shopping(generated_caption, serper_api_key)
