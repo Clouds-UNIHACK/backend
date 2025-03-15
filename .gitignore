@@ -24,4 +24,5 @@ archive.zip
 .*.sw?
 .cache
 .env
+.env.deploy
 docker-compose.yml

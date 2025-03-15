@@ -1,10 +1,9 @@
 from fastapi import Depends, HTTPException, status, APIRouter
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 from backend.database.session import get_session  # Async session dependency
-from backend.dtos.requests.login_request_dto import LoginRequestDto
-from backend.dtos.requests.register_request_dto import RegisterRequestDto
+from backend.dtos.requests.auth.login_request_dto import LoginRequestDto
+from backend.dtos.requests.auth.register_request_dto import RegisterRequestDto
 from backend.models.user import User
 from backend.repositories.user_repository import UserRepository
 from backend.utils.jwt_token import create_access_token

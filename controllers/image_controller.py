@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 from backend.database.session import get_session
-from backend.dtos.requests.save_picture_request_dto import SavePictureRequestDto
+from backend.dtos.requests.image.save_picture_request_dto import SavePictureRequestDto
 from backend.repositories.image_repository import ImageRepository
 
 cloudinary.config(
