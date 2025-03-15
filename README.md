@@ -28,18 +28,18 @@ cd backend
 pip install -r requirements.txt
 ```
 
-3. Initialize database:
-```bash
-cd .. (Move out of the backend folder)
-python -m python -m backend.utils.init_db
-```
 ## Running Instructions
-4. Navigate to the back-end directory:
+3. Move out of backend (if still in backend folder):
 ```bash
-cd backend
+cd ..
 ```
 
-5. Open FastAPI server
+4. Initialize database:
 ```bash
-uvicorn main:app --reload
+python -m python -m backend.utils.init_db
+```
+
+4. Open FastAPI server
+```bash
+uvicorn backend.main:app --reload
 ```

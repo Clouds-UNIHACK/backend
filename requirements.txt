@@ -4,3 +4,5 @@ sqlmodel==0.0.24
 psycopg2-binary==2.9.10
 cloudinary==1.42.2
 python-dotenv==1.0.1
+PyJWT==2.10.1
+python-multipart==0.0.20

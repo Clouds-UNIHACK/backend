@@ -1,0 +1,1 @@
+﻿kling_ai_api_domain = "https://api.klingai.com"
