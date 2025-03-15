@@ -1,16 +1,9 @@
-﻿from sqlalchemy import Column, String, Integer, ForeignKey
+﻿from sqlmodel import SQLModel, Field
+import uuid
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+class FolderLabel(SQLModel, table=True):
+    __tablename__ = 'folder_label'
 
-Base = declarative_base()
-
-class FolderLabel(Base):
-    __tablename__ = "folder_label"
-
-    folder_label_id = Column(Integer, primary_key=True)
-    folder_id = Column(String, ForeignKey('folder.folder_id'), nullable=False)
-    label_id = Column(String, ForeignKey('label.label_id'), nullable=False)
-
-    folder = relationship("Folder", back_populates="label")
-    label = relationship("Label", back_populates="folder")
+    folder_label_id: int = Field(default=None, primary_key=True)
+    folder_id: uuid.UUID = Field(foreign_key="folder.folder_id")
+    label_id: uuid.UUID = Field(foreign_key="label.label_id")

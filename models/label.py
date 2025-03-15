@@ -1,17 +1,17 @@
-﻿import uuid
+﻿from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, List
+import uuid
 
-from sqlalchemy import Column, String
+from models.folder import Folder
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-
-Base = declarative_base()
-
-class Label(Base):
+class Label(SQLModel, table=True):
     __tablename__ = "label"
 
-    label_id = Column(String, primary_key=True, defualt=lambda: str(uuid.uuid4()))
-    name = Column(String, nullable=False)
-    color = Column(String, nullable=True)
+    label_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(nullable=False)
+    color: Optional[str] = Field(nullable=True)
 
-    folders = relationship("Folder", secondary="folder_label", back_populates="label")
+    folders: List[Folder] = Relationship(
+        back_populates="label",
+        link_model="FolderLabel"
+    )

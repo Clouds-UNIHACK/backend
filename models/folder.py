@@ -1,18 +1,19 @@
-﻿import uuid
+﻿from sqlmodel import SQLModel, Field, Relationship
+from typing import List
+import uuid
 
-from sqlalchemy import Column, String
+from models.image import Image
+from models.label import Label
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 
-Base = declarative_base()
-
-class Folder(Base):
+class Folder(SQLModel, table=True):
     __tablename__ = "folder"
 
-    folder_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String, nullable=False)
+    folder_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(nullable=False)
 
-    images = relationship("Image", back_populates="folder")
-    labels = relationship("Label", secondary="folder_label", back_populates="folder")
-
+    images: List[Image] = Relationship(back_populates="folder")
+    labels: List[Label] = Relationship(
+        back_populates="folder",
+        link_model="FolderLabel"
+    )

@@ -1,19 +1,16 @@
-﻿import uuid
+﻿from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional
+import uuid
 
-from sqlalchemy import Column, String, ForeignKey
-
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-
-Base = declarative_base()
+from models.folder import Folder
 
 
-class Image(Base):
+class Image(SQLModel, table=True):
     __tablename__ = "image"
 
-    image_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    public_id = Column(String, nullable=True)
-    url = Column(String, nullable=False)
-    folder_id = Column(String, ForeignKey('folder.folder_id'), nullable=True)
+    image_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    public_id: str = Field(nullable=True)
+    url: str = Field(nullable=False)
+    folder_id: Optional[uuid.UUID] = Field(default=None, foreign_key="folder.folder_id", nullable=True)
 
-    folder = relationship("Folder", back_populates="image")
+    folder: Optional[Folder] = Relationship(back_populates="image")

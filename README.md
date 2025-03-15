@@ -27,13 +27,18 @@ cd backend
 ```bash
 pip install -r requirements.txt
 ```
+
+3. Initialize database:
+```bash
+python utils/init_db.py
+```
 ## Running Instructions
-3. Navigate to the back-end directory:
+4. Navigate to the back-end directory:
 ```bash
 cd backend
 ```
 
-4. Open FastAPI server
+5. Open FastAPI server
 ```bash
 uvicorn main:app --reload
 ```
