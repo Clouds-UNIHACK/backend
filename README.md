@@ -30,7 +30,8 @@ pip install -r requirements.txt
 
 3. Initialize database:
 ```bash
-python utils/init_db.py
+cd .. (Move out of the backend folder)
+python -m python -m backend.utils.init_db
 ```
 ## Running Instructions
 4. Navigate to the back-end directory:

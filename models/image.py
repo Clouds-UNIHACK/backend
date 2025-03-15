@@ -2,7 +2,7 @@
 from typing import Optional
 import uuid
 
-from models.folder import Folder
+from backend.models.folder import Folder
 
 
 class Image(SQLModel, table=True):

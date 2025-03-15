@@ -1,8 +1,7 @@
 ﻿from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
+from backend.models.folder_label import FolderLabel
 import uuid
-
-from models.folder import Folder
 
 class Label(SQLModel, table=True):
     __tablename__ = "label"
@@ -11,7 +10,7 @@ class Label(SQLModel, table=True):
     name: str = Field(nullable=False)
     color: Optional[str] = Field(nullable=True)
 
-    folders: List[Folder] = Relationship(
+    folders: List["Folder"] = Relationship(
         back_populates="label",
-        link_model="FolderLabel"
+        link_model=FolderLabel
     )

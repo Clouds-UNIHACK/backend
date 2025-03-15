@@ -1,9 +1,7 @@
 ﻿from sqlmodel import SQLModel, Field, Relationship
 from typing import List
+from backend.models.folder_label import FolderLabel
 import uuid
-
-from models.image import Image
-from models.label import Label
 
 
 class Folder(SQLModel, table=True):
@@ -12,8 +10,8 @@ class Folder(SQLModel, table=True):
     folder_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(nullable=False)
 
-    images: List[Image] = Relationship(back_populates="folder")
-    labels: List[Label] = Relationship(
+    images: List["Image"] = Relationship(back_populates="folder")
+    labels: List["Label"] = Relationship(
         back_populates="folder",
-        link_model="FolderLabel"
+        link_model=FolderLabel
     )
