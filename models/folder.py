@@ -17,5 +17,6 @@ class Folder(SQLModel, table=True):
     images: List["Image"] = Relationship(back_populates="folder")
     labels: List["Label"] = Relationship(
         back_populates="folders",
-        link_model=FolderLabel
+        link_model=FolderLabel,
+        sa_relationship_kwargs={'lazy': 'selectin'}
     )

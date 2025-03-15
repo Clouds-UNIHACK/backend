@@ -8,7 +8,6 @@ from backend.database.session import get_session
 from backend.dtos.requests.folder.create_folder_request_dto import CreateFolderRequestDto
 from backend.dtos.requests.folder.folder_update_request_dto import FolderUpdateRequestDto
 from backend.mappers.folders_mapper import map_folder_to_folder_response_dto
-from backend.mappers.images_mapper import map_image_to_image_response_dto
 from backend.repositories.folder_repository import FolderRepository
 from backend.repositories.image_repository import ImageRepository
 from backend.repositories.label_repository import LabelRepository
@@ -28,7 +27,7 @@ async def create_folder(
 
     try:
         new_folder = await FolderRepository.create_folder(db, data_request.name, user_id)
-        return JSONResponse(content={"id": new_folder.id, "name": new_folder.name}, status_code=200)
+        return JSONResponse(content={"id": str(new_folder.id), "name": new_folder.name}, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Cannot create folder to the database {e}")
 
@@ -38,9 +37,9 @@ async def get_folders(
         db: AsyncSession = Depends(get_session)
 ):
     try:
-        # Get all folders from the current user
         user_id = http_request.state.user_id
 
+        # Get all folders from the current user
         folders = await FolderRepository.get_folders_by_user_id(db, user_id)
         folders_dto = [map_folder_to_folder_response_dto(folder) for folder in folders]
         return folders_dto
@@ -57,7 +56,7 @@ async def get_folder_by_id(
         folder = await FolderRepository.get_folder_by_id(db, folder_id)
 
         # If the folder doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != folder.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(folder.user_id): raise Exception("Unauthorized")
 
         return map_folder_to_folder_response_dto(folder)
     except Exception as e:
@@ -89,18 +88,18 @@ async def update_folder(
         folder = await FolderRepository.get_folder_by_id(db, data_request.id)
 
         # If the folder doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != folder.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(folder.user_id): raise Exception("Unauthorized")
 
         # Update folder's name
         new_folder = await FolderRepository.update_folder(db, data_request.id, data_request.name)
 
         if data_request.label_ids:
-            label_ids = reduce(lambda lists, label_id: lists.append(uuid.UUID(label_id)), data_request.label_ids, [])
+            label_ids = [uuid.UUID(label_id) for label_id in data_request.label_ids]
 
-            labels = deepcopy(await LabelRepository.get_labels_by_ids(db, label_ids))
+            labels = await LabelRepository.get_labels_by_ids(db, label_ids)
 
             # Add/Remove labels for the folder
-            new_folder = await FolderRepository.update_folder_labels(db, update_folder.id, labels)
+            new_folder = await FolderRepository.update_folder_labels(db, str(folder.id), labels)
 
         return map_folder_to_folder_response_dto(new_folder)
     except Exception as e:

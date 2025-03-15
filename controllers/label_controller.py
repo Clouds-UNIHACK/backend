@@ -49,7 +49,7 @@ async def update_label(
         label = await LabelRepository.get_label_by_id(db, data_request.id)
 
         # If the label doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if http_request.state.user_id != label.user_id: raise Exception("Unauthorized")
+        if http_request.state.user_id != str(label.user_id): raise Exception("Unauthorized")
 
         # Update label's name and color
         new_label = await LabelRepository.update_label(db, data_request.name, data_request.color, data_request.id)
@@ -71,7 +71,7 @@ async def delete_label(
         label = await LabelRepository.get_label_by_id(db, label_id)
 
         # If the deleted label doesn't have the same user_id as the current request user_id, they are doing something naughty :3
-        if user_id != label.user_id: raise Exception("Unauthorized")
+        if user_id != str(label.user_id): raise Exception("Unauthorized")
 
         await LabelRepository.delete_label(db, label_id)
         return JSONResponse(content={"result": "ok"}, status_code=200)

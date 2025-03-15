@@ -13,6 +13,7 @@ class Label(SQLModel, table=True):
 
     folders: List["Folder"] = Relationship(
         back_populates="labels",
-        link_model=FolderLabel
+        link_model=FolderLabel,
+        sa_relationship_kwargs={'lazy': 'selectin'}
     )
     user: "User" = Relationship(back_populates="labels")

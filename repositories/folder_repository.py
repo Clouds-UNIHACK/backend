@@ -74,10 +74,10 @@ class FolderRepository:
         try:
             # Retrieve the folder to update
             folder = await FolderRepository.get_folder_by_id(db, folder_id)
+            print(folder.labels)
 
             if folder:
-                folder.labels = []
-                folder.labels.extend(labels)
+                folder.labels = labels
 
                 db.add(folder)
                 await db.commit()

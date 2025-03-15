@@ -1,4 +1,5 @@
-﻿from http.client import HTTPException
+﻿import uuid
+from http.client import HTTPException
 from io import BytesIO
 
 import requests
@@ -88,7 +89,6 @@ async def get_images(
     try:
         # Get all images from the current user
         user_id = http_request.state.user_id
-        print(user_id)
 
         images = await ImageRepository.get_images_by_user_id(db, user_id)
         images_dto = [map_image_to_image_response_dto(image) for image in images]
@@ -112,10 +112,10 @@ async def get_image_by_id(
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
-@router.get("/saved-images/folder")
+@router.get("/saved-images")
 async def get_images_by_folder_id(
+        folder_id: uuid.UUID,
         http_request: Request,
-        folder_id: str = Query(..., alias="folder-id"),
         db: AsyncSession = Depends(get_session)
 ):
     try:
@@ -123,7 +123,7 @@ async def get_images_by_folder_id(
         user_id = http_request.state.user_id
         images = await ImageRepository.get_images_by_folder_id(db, user_id, folder_id)
         images_dto = [map_image_to_image_response_dto(image) for image in images]
-        return JSONResponse(content=images_dto, status_code=200)
+        return images_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
@@ -141,7 +141,7 @@ async def update_image(
 
         # Update (move) image to its new folder
         new_image = await ImageRepository.update_image_folder_id(db, data_request.id, data_request.folder_id)
-        return JSONResponse(content=map_image_to_image_response_dto(new_image), status_code=200)
+        return map_image_to_image_response_dto(new_image)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
