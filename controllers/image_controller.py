@@ -4,7 +4,7 @@ from io import BytesIO
 import cloudinary
 import cloudinary.uploader
 import requests
-
+from PIL import Image
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,8 +34,14 @@ async def save_image(
 
         image_data = BytesIO(response.content)
 
+        # Compress image for less bytes
+        image = Image.open(image_data)
+        img_byte_arr = BytesIO()
+        image.save(img_byte_arr, format="JPEG", quality=85)
+        img_byte_arr.seek(0)
+
         upload_result = cloudinary.uploader.upload(
-            image_data,
+            img_byte_arr,
             folder="Clouds-Unihack"
         )
 
@@ -52,4 +58,4 @@ async def save_image(
     except requests.exceptions.RequestException as e:
         raise HTTPException(f"Cannot download the image from that url: {data_request.kling_url}")
     except cloudinary.exceptions.Error as e:
-        raise HTTPException(f"Error uploading to cloudinary")
+        raise HTTPException(f"Error uploading to cloudinary: {e}")

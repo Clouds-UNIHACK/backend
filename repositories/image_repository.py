@@ -5,7 +5,7 @@ class ImageRepository:
     @staticmethod
     async def save_image(db: AsyncSession, public_url: str, public_id: str, user_id: str):
         try:
-            new_image = Image(public_url=public_url, public_id=public_id, user_id=user_id)
+            new_image = Image(url=public_url, public_id=public_id, user_id=user_id)
             db.add(new_image)
             await db.commit()
             await db.refresh(new_image)
