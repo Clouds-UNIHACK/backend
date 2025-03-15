@@ -1,10 +1,33 @@
-﻿from backend.config import *
+﻿import base64
+import os
+from backend.config import *
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from backend.controllers import image_controller
+from transformers import pipeline, CLIPProcessor, CLIPModel
+from PIL import Image
+from io import BytesIO
+from backend.image_utils import decode_image, generate_caption, get_shop_recommendations, Product, search_google_shopping
+import torch.nn.functional as F
+
+serper_api_key = os.getenv("SERPER_API_KEY")  # Replace with your actual SerpApi key
 
 app = FastAPI(title="Clouds-Unihack API")
+BLIP_pipe = pipeline("image-to-text", model="rcfg/FashionBLIP-1", use_fast=True)
+clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
+# Update the origins list to include your frontend's origin (e.g., http://localhost:3000)
+origins = ["http://localhost:5173"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # Allow specified origins
+    allow_credentials=True,
+    allow_methods=["*"],            # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],            # Allow all headers
+)
 
 # app.include_router(auth_controller.router)
 app.include_router(image_controller.router)
@@ -22,3 +45,42 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content={"detail": exc.detail, "error": "An error occurred"}
     )
+
+@app.post("/api/ai-recommend-shops")
+async def ai_recommend_shops(request: Request):
+    print("ai_recommend_shops")
+    try:
+        # Read the image from the request
+        request_data = await request.json()
+        image_data = request_data.get("image")  # Expecting base64 string
+        if not image_data:
+            raise HTTPException(status_code=400, detail="Image data is required")
+
+        # Decode the image
+        image = decode_image(image_data)
+
+        # Generate the caption for the image
+        generated_caption = generate_caption(image, BLIP_pipe)
+        print(f"Generated Caption: {generated_caption}")
+
+        # Get the recommended images from Google Shopping API
+        recommended_images: list[Product] = search_google_shopping(generated_caption, serper_api_key)
+        
+        # Get shop recommendations
+        shop_recommendations: list[Product] = get_shop_recommendations(image, recommended_images, clip_processor, clip_model)
+        
+        # Convert shop_recommendations to a JSON-serializable format
+        serialized_recommendations = [shop_recommendation.to_dict() for shop_recommendation in shop_recommendations]
+
+        return JSONResponse(
+            status_code=200,
+            content={"shop_recommendations": serialized_recommendations}
+        )
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+    
+
