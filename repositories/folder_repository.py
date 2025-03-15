@@ -1,8 +1,11 @@
+from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from backend.models.folder import Folder
 from backend.models.folder_label import FolderLabel
+from backend.models.label import Label
 
 
 class FolderRepository:
@@ -21,7 +24,7 @@ class FolderRepository:
 
     @staticmethod
     async def get_folders_by_user_id(db: AsyncSession, user_id: str):
-        # Get all folders
+        # Get all folders from user_id
         result = await db.execute(select(Folder).where(Folder.user_id == user_id))
         folders = result.scalars().all()
         return folders
@@ -61,7 +64,26 @@ class FolderRepository:
                 await db.refresh(folder)
                 return folder
             else:
-                raise ValueError("Folder not found")
+                raise Exception("Folder not found")
+        except Exception as e:
+            await db.rollback()
+            raise e
+
+    @staticmethod
+    async def update_folder_labels(db: AsyncSession, folder_id: str, labels: List[Label]):
+        try:
+            # Retrieve the folder to update
+            folder = await FolderRepository.get_folder_by_id(db, folder_id)
+
+            if folder:
+                folder.labels = []
+                folder.labels.extend(labels)
+
+                db.add(folder)
+                await db.commit()
+                await db.refresh(folder)
+            else:
+                raise Exception("Folder not found")
         except Exception as e:
             await db.rollback()
             raise e

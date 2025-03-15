@@ -2,5 +2,5 @@
 
 
 class UpdateImageRequestDto(BaseModel):
-    image_id: str
+    id: str
     folder_id: str

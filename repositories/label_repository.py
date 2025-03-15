@@ -1,4 +1,5 @@
-﻿from typing import Optional
+﻿import uuid
+from typing import Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -29,6 +30,17 @@ class LabelRepository:
         return labels
 
     @staticmethod
+    async def get_label_by_id(db: AsyncSession, label_id: str) -> Label:
+        result = await db.execute(select(Label).where(Label.id == label_id))
+        label = result.scalars().first()
+        return label
+
+    @staticmethod
+    async def get_labels_by_ids(db: AsyncSession, label_ids: List[uuid.UUID]) -> List[Label]:
+        result = await db.execute(select(Label).where(Label.id.in_(label_ids)))
+        return result.scalars().all()
+
+    @staticmethod
     async def get_labels_by_folder_id(db: AsyncSession, user_id: str, folder_id: str):
         # Filter folders by folder
         result = await db.execute(
@@ -37,11 +49,6 @@ class LabelRepository:
             .where(Label.user_id == user_id, FolderLabel.folder_id == folder_id))
         return result.scalars().all()
 
-    @staticmethod
-    async def get_label_by_id(db: AsyncSession, label_id: str) -> Label:
-        result = await db.execute(select(Label).where(Label.id == label_id))
-        label = result.scalars().first()
-        return label
 
     @staticmethod
     async def get_label_by_name(db: AsyncSession, name: str, user_id: str) -> Label:

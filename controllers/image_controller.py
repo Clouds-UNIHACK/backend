@@ -111,7 +111,7 @@ async def get_image_by_id(
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
-@router.get("/saved-images")
+@router.get("/saved-images/folder")
 async def get_images_by_folder_id(
         http_request: Request,
         folder_id: str = Query(..., alias="folder-id"),
@@ -126,20 +126,20 @@ async def get_images_by_folder_id(
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
-@router.put("/update_image")
+@router.put("/update-image")
 async def update_image(
         data_request: UpdateImageRequestDto,
         http_request: Request,
         db: AsyncSession = Depends(get_session)
 ):
     try:
-        image = await ImageRepository.get_image_by_id(db, data_request.image_id)
+        image = await ImageRepository.get_image_by_id(db, data_request.id)
 
         # If the image doesn't have the same user_id as the current request user_id, they are doing something naughty :3
         if http_request.state.user_id != image.user_id: raise Exception("Unauthorized")
 
         # Update (move) image to its new folder
-        new_image = await ImageRepository.update_image_folder_id(db, data_request.image_id, data_request.folder_id)
+        new_image = await ImageRepository.update_image_folder_id(db, data_request.id, data_request.folder_id)
         return JSONResponse(content=map_image_to_image_response_dto(new_image), status_code=200)
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
