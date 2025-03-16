@@ -9,7 +9,6 @@ from backend.controllers import (
     folder_controller,
     label_controller,
     auth_controller,
-    recommender_shops_controller,
     recommender_stylist_controller,
 )
 
@@ -32,7 +31,6 @@ app.include_router(auth_controller.router)
 app.include_router(image_controller.router)
 app.include_router(folder_controller.router)
 app.include_router(label_controller.router)
-app.include_router(recommender_shops_controller.router)
 app.include_router(recommender_stylist_controller.router)
 
 
