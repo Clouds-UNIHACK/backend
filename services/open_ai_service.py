@@ -1,17 +1,17 @@
-﻿import openai
+﻿from openai import OpenAI
 
+client = OpenAI()
 from backend.config import OPEN_API_KEY
 
-openai.api_key = OPEN_API_KEY
 
 async def analyse_images_stylist_open_ai(img_urls, prompt):
-    response = await openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system",
-             "content": "You are a stylist helping users to choose the best clothes in provided images for an occasion."},
-            {"role": "user", "content": prompt, "images": img_urls}
-        ]
+    content = [{"type": "text", "text": prompt}]
+    for img_url in img_urls:
+        content.append({"type": "image_url", "image_url": {"url": img_url}})
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", messages=[{"role": "user", "content": content}]
     )
 
-    return {"response": response["choices"][0]["message"]["content"]}
+    print(response.choices[0])
+    return {"response": response.choices[0]}
