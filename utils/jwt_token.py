@@ -8,7 +8,7 @@ from backend.config import SECRET_KEY
 
 # Secret key for encoding and decoding the JWT token
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 
 # Function to create an access token

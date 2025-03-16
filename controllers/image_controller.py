@@ -1,13 +1,12 @@
 ﻿import uuid
 from http.client import HTTPException
 from io import BytesIO
-
 import requests
 from PIL import Image
-from fastapi import APIRouter, Depends, Request, File, UploadFile, HTTPException, Query
+from fastapi import APIRouter, Depends, Request, File, UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.database.session import get_session
-from backend.dtos.requests.image.save_picture_request_dto import SavePictureRequestDto
+from backend.dtos.requests.image.save_image_request_dto import SaveImageRequestDto
 from backend.dtos.requests.image.update_image_request_dto import UpdateImageRequestDto
 from backend.dtos.responses.image_response_dto import ImageResponseDto
 from backend.mappers.images_mapper import map_image_to_image_response_dto
@@ -18,8 +17,8 @@ from backend.utils.kling_ai_token import encode_kling_ai_jwt_token
 from backend.utils.misc import encode_image
 from starlette.responses import JSONResponse
 
-
 router = APIRouter(prefix="/api/v1", tags=["Images"])
+
 
 @router.post("/generate-image")
 async def generate_image(human_image: UploadFile = File(...), cloth_image: UploadFile = File(...)):
@@ -44,9 +43,10 @@ async def generate_image(human_image: UploadFile = File(...), cloth_image: Uploa
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
+
 @router.post("/save-image")
 async def save_image(
-        data_request: SavePictureRequestDto,
+        data_request: SaveImageRequestDto,
         http_request: Request,
         db: AsyncSession = Depends(get_session)
 ):
@@ -71,15 +71,20 @@ async def save_image(
         user_id = http_request.state.user_id
 
         try:
-            await ImageRepository.save_image(db, cloudinary_result["secure_url"], cloudinary_result["public_id"], user_id)
-            return JSONResponse(content={"secure_url": cloudinary_result["secure_url"], "public_id": cloudinary_result["public_id"]}, status_code=200)
+            await ImageRepository.save_image(db, cloudinary_result["secure_url"], cloudinary_result["public_id"],
+                                             user_id)
+            return JSONResponse(
+                content={"secure_url": cloudinary_result["secure_url"], "public_id": cloudinary_result["public_id"]},
+                status_code=200)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Cannot save image to the database {e}")
 
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Cannot download the image from that url: {data_request.kling_url} - {e}")
+        raise HTTPException(status_code=400,
+                            detail=f"Cannot download the image from that url: {data_request.kling_url} - {e}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
+
 
 @router.get("/saved-images")
 async def get_images(
@@ -95,6 +100,7 @@ async def get_images(
         return images_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
+
 
 @router.get("/saved-images/{image_id}", response_model=ImageResponseDto)
 async def get_image_by_id(
@@ -112,6 +118,7 @@ async def get_image_by_id(
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
+
 @router.get("/saved-images")
 async def get_images_by_folder_id(
         folder_id: uuid.UUID,
@@ -121,11 +128,12 @@ async def get_images_by_folder_id(
     try:
         # Get image from current user with specific ID
         user_id = http_request.state.user_id
-        images = await ImageRepository.get_images_by_folder_id(db, user_id, folder_id)
+        images = await ImageRepository.get_images_by_folder_id(db, user_id, str(folder_id))
         images_dto = [map_image_to_image_response_dto(image) for image in images]
         return images_dto
     except Exception as e:
         raise HTTPException(status_code=400, detail=e)
+
 
 @router.put("/update-image", response_model=ImageResponseDto)
 async def update_image(
@@ -160,7 +168,8 @@ async def delete_image(
         if http_request.state.user_id != str(image.user_id): raise Exception("Unauthorized")
 
         cloudinary_result = await delete_image_from_cloudinary(image.public_id)
-        if cloudinary_result["result"] != "ok": raise Exception(f"Failed to delete image in cloudinary: {cloudinary_result}")
+        if cloudinary_result["result"] != "ok": raise Exception(
+            f"Failed to delete image in cloudinary: {cloudinary_result}")
 
         await ImageRepository.delete_image(db, str(image.id))
         return JSONResponse(content={"result": "ok"}, status_code=200)

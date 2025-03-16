@@ -1,5 +1,5 @@
 ﻿from pydantic import BaseModel
 
 
-class SavePictureRequestDto(BaseModel):
+class SaveImageRequestDto(BaseModel):
     kling_url: str

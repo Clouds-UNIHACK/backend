@@ -30,7 +30,10 @@ CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")
 
 # Load Serper API Key
-SERPER_API_KEY = os.getenv("SERPER_API_KEY")  # Replace with your actual SerpApi key
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+
+# Load Open API Key
+OPEN_API_KEY = os.getenv("OPEN_AI_KEY")
 
 # Load Front End Server
 FRONTEND_HOST = os.getenv("FRONTEND_HOST")

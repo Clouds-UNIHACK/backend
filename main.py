@@ -11,6 +11,7 @@ app = FastAPI(title="Clouds-Unihack API")
 # Allow CORS for frontend
 origins = [f"http://{FRONTEND_HOST}:{FRONTEND_PORT}"]
 
+app.add_middleware(AuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -19,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(AuthMiddleware)
 
 app.include_router(auth_controller.router)
 app.include_router(image_controller.router)
